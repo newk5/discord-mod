@@ -15,29 +15,30 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class MessageListener extends ListenerAdapter {
 
-    
-    public String[] getRoles(List<Role> roles){
+    public String[] getRoles(List<Role> roles) {
         String[] array = new String[roles.size()];
-        
-        for (int i = 0; i < roles.size();i++){
+
+        for (int i = 0; i < roles.size(); i++) {
             array[i] = roles.get(i).getName();
         }
         return array;
     }
 
-   
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        boolean isBot = event.getAuthor().isBot();
-        String name = event.getAuthor().getName();
-        if (!isBot && !botNames.contains(name)) {
-            if (event.isFromType(ChannelType.TEXT)) {
+        String token = event.getJDA().getToken().split("Bot ")[1];
 
-                String token = event.getJDA().getToken().split("Bot ")[1];
-                if (bots.containsKey(token)) {
-                    AsyncResult res = new CommonResult(bots.get(token).getOnMessageCallback(), new Object[]{event, getRoles(event.getMember().getRoles())});
-                    res.setMaintainCallback(true);
-                    eventLoop.queue.add(res);
+        if (bots.get(token).getOnMessageCallback() != null) {
+            boolean isBot = event.getAuthor().isBot();
+            String name = event.getAuthor().getName();
+            if (!isBot && !botNames.contains(name)) {
+                if (event.isFromType(ChannelType.TEXT)) {
+
+                    if (bots.containsKey(token)) {
+                        AsyncResult res = new CommonResult(bots.get(token).getOnMessageCallback(), new Object[]{event, getRoles(event.getMember().getRoles())});
+                        res.setMaintainCallback(true);
+                        eventLoop.queue.add(res);
+                    }
                 }
             }
         }
@@ -46,14 +47,14 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
         String token = event.getJDA().getToken().split("Bot ")[1];
-        if (bots.containsKey(token)) {
-            AsyncResult res = new CommonResult(bots.get(token).getOnPrivateMsgCallback(), new Object[]{event});
-            res.setMaintainCallback(true);
-            eventLoop.queue.add(res);
+        if (bots.get(token).getOnPrivateMsgCallback() != null) {
+            if (bots.containsKey(token)) {
+                AsyncResult res = new CommonResult(bots.get(token).getOnPrivateMsgCallback(), new Object[]{event});
+                res.setMaintainCallback(true);
+                eventLoop.queue.add(res);
+            }
         }
     }
-
-  
 
     @Override
     public void onReady(ReadyEvent event) {
@@ -63,10 +64,12 @@ public class MessageListener extends ListenerAdapter {
         botNames.add(name);
 
         String token = event.getJDA().getToken().split("Bot ")[1];
-        if (bots.containsKey(token)) {
-            AsyncResult res = new CommonResult(bots.get(token).getOnReadyCallback(), new Object[]{event});
-            res.setMaintainCallback(true);
-            eventLoop.queue.add(res);
+        if (bots.get(token).getOnReadyCallback() != null) {
+            if (bots.containsKey(token)) {
+                AsyncResult res = new CommonResult(bots.get(token).getOnReadyCallback(), new Object[]{event});
+                res.setMaintainCallback(true);
+                eventLoop.queue.add(res);
+            }
         }
 
     }
